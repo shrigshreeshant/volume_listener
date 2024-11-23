@@ -1,15 +1,22 @@
-# volume_listener
+# Volume Listener
 
-A new Flutter plugin project.
+a flutter plugin to listen to volume button press events on android and ios.
 
 ## Getting Started
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+```dart
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+import 'package:volume_listener/volume_listener.dart';
+
+void main() {
+    VolumeListener.addListener((VolumeKey event) {
+        print(event);
+    });
+  
+    // stop listening
+    VolumeListener.removeListener();
+}
+```
+
+
 
