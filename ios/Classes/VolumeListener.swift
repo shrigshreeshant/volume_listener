@@ -5,29 +5,43 @@ import MediaPlayer
 @objc public class VolumeListener: NSObject {
     public static let shared = VolumeListener()
     
-    private var audioSession: AVAudioSession?
+    private weak var audioSession: AVAudioSession?
     private var volumeChangeHandler: ((String) -> Void)?
     private var initialVolume: Float = 0.0
+    private var volumeTimer: Timer?
+    private var systemVolumeView: MPVolumeView?
     
     private override init() {
         super.init()
+        audioSession = AVAudioSession.sharedInstance()
+        setupSystemVolumeView()
+    }
+    
+    private func setupSystemVolumeView() {
+        // Create an invisible volume view to intercept volume changes
+        systemVolumeView = MPVolumeView(frame: .zero)
+        systemVolumeView?.showsRouteButton = false
+        systemVolumeView?.showsVolumeSlider = false
     }
     
     @objc public func startListening(volumeChangeHandler: @escaping (String) -> Void) {
         self.volumeChangeHandler = volumeChangeHandler
         
-        // Set up audio session
-        audioSession = AVAudioSession.sharedInstance()
+        guard let audioSession = self.audioSession else {
+            print("VolumeListener: Failed to access audio session")
+            return
+        }
         
         do {
-            try audioSession?.setCategory(.playback, mode: .default)
-            try audioSession?.setActive(true)
+            // Configure audio session for background audio
+            try audioSession.setCategory(.playback, mode: .default, options: [.mixWithOthers])
+            try audioSession.setActive(true)
             
             // Get initial volume
-            initialVolume = audioSession?.outputVolume ?? 0.0
+            initialVolume = audioSession.outputVolume
             
-            // Add volume change observer using KVO
-            audioSession?.addObserver(self, forKeyPath: #keyPath(AVAudioSession.outputVolume), options: [.new, .old], context: nil)
+            // Start periodic volume checking
+            startVolumeTimer()
             
             print("VolumeListener: Listening started successfully")
         } catch {
@@ -35,46 +49,58 @@ import MediaPlayer
         }
     }
     
-    @objc public func stopListening() {
-        // Remove KVO observer
-        do {
-            try audioSession?.removeObserver(self, forKeyPath: #keyPath(AVAudioSession.outputVolume))
-        } catch {
-            print("VolumeListener: Error removing observer - \(error)")
+    private func startVolumeTimer() {
+        // Stop any existing timer
+        volumeTimer?.invalidate()
+        
+        // Start a new timer to check volume periodically
+        volumeTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            self?.checkVolumeChange()
+        }
+    }
+    
+    private func checkVolumeChange() {
+        guard let audioSession = self.audioSession else {
+            print("VolumeListener: Audio session no longer available")
+            return
         }
         
+        let currentVolume = audioSession.outputVolume
+        
+        // Detect volume changes with a small threshold to prevent multiple triggers
+        if abs(currentVolume - initialVolume) > 0.05 {
+            if currentVolume > initialVolume {
+                volumeChangeHandler?("up")
+            } else {
+                volumeChangeHandler?("down")
+            }
+            
+            // Update initial volume
+            initialVolume = currentVolume
+        }
+    }
+    
+    @objc public func stopListening() {
+        // Stop volume timer
+        volumeTimer?.invalidate()
+        volumeTimer = nil
+        
+        // Clear the handler
         volumeChangeHandler = nil
         
         // Deactivate audio session
+        guard let audioSession = self.audioSession else {
+            print("VolumeListener: No audio session to deactivate")
+            return
+        }
+        
         do {
-            try audioSession?.setActive(false)
+            try audioSession.setActive(false)
         } catch {
             print("VolumeListener: Error deactivating audio session - \(error)")
         }
         
         print("VolumeListener: Listening stopped")
-    }
-    
-    // KVO observation method
-    public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        guard keyPath == #keyPath(AVAudioSession.outputVolume),
-              let audioSession = object as? AVAudioSession,
-              let newVolume = change?[.newKey] as? Float,
-              let oldVolume = change?[.oldKey] as? Float else {
-            return
-        }
-        
-        print("VolumeListener: Volume changed from \(oldVolume) to \(newVolume)")
-        
-        // Determine volume key press direction
-        if newVolume > initialVolume {
-            volumeChangeHandler?("up")
-        } else if newVolume < initialVolume {
-            volumeChangeHandler?("down")
-        }
-        
-        // Update initial volume
-        initialVolume = newVolume
     }
     
     deinit {
