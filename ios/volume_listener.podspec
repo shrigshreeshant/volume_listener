@@ -5,16 +5,17 @@
 Pod::Spec.new do |s|
   s.name             = 'volume_listener'
   s.version          = '0.0.1'
-  s.summary          = 'A new Flutter plugin project.'
+  s.summary          = 'A Flutter plugin to listen to volume key events on iOS'
   s.description      = <<-DESC
-A new Flutter plugin project.
+  Provides volume key press events for iOS devices.
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://github.com/folksable/volume_listener'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'Dhikshith Reddy' => 'dhikshith@folksable.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
+  s.frameworks = 'AVFoundation', 'MediaPlayer'
   s.platform = :ios, '12.0'
 
   # Flutter.framework does not contain a i386 slice.
