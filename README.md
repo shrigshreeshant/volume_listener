@@ -9,9 +9,9 @@ a flutter plugin to listen to volume button press events on android and ios.
 ```kotlin
 import com.folksable.volume_listener.VolumeListenerActivity
 
-// extend your MainActivity with VolumeListenerActivity, and remove FlutterActivity
+/// extend your MainActivity with VolumeListenerActivity, and remove FlutterActivity
 class MainActivity: VolumeListenerActivity() {
-    ...
+    // ...
 }
 ```
 
