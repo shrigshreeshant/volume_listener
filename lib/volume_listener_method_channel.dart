@@ -14,6 +14,8 @@ class MethodChannelVolumeListener implements VolumeListenerPlatform {
         onVolumeChangeListener(VolumeKey.up);
       } else if (event == 'down') {
         onVolumeChangeListener(VolumeKey.down);
+      } else if (event == 'capture') {
+        onVolumeChangeListener(VolumeKey.capture);
       }
     });
   }

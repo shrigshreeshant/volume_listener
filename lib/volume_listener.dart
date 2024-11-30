@@ -13,4 +13,6 @@ class VolumeListener {
 enum VolumeKey {
   up,
   down,
+  // for iOS 17.2 and above
+  capture
 }
