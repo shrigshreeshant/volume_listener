@@ -48,14 +48,6 @@ import MediaPlayer
     @objc public func startListening(volumeChangeHandler: @escaping (String) -> Void) {
         self.volumeChangeHandler = volumeChangeHandler
         
-        // Try hardware event listener first on iOS 17.2+
-        if #available(iOS 17.2, *) {
-            if let interaction = eventInteraction as? AVCaptureEventInteraction {
-                interaction.isEnabled = true
-                print("VolumeListener: Using hardware event interaction")
-                return
-            }
-        }
         
         // Fallback to existing timer-based method
         guard let audioSession = self.audioSession else {
