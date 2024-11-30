@@ -11,6 +11,10 @@ import MediaPlayer
     private var volumeTimer: Timer?
     private var systemVolumeView: MPVolumeView?
     
+    // Increased sensitivity parameters
+    private let volumeChangeThreshold: Float = 0.02 // Smaller threshold for more sensitive detection
+    private let timerInterval: TimeInterval = 0.05 // (20 times per second)
+    
     private override init() {
         super.init()
         audioSession = AVAudioSession.sharedInstance()
@@ -53,8 +57,8 @@ import MediaPlayer
         // Stop any existing timer
         volumeTimer?.invalidate()
         
-        // Start a new timer to check volume periodically
-        volumeTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        // Start a new timer to check volume more frequently
+        volumeTimer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true) { [weak self] _ in
             self?.checkVolumeChange()
         }
     }
@@ -67,15 +71,14 @@ import MediaPlayer
         
         let currentVolume = audioSession.outputVolume
         
-        // Detect volume changes with a small threshold to prevent multiple triggers
-        if abs(currentVolume - initialVolume) > 0.05 {
+        // Detect volume changes with a smaller threshold to prevent multiple triggers
+        if abs(currentVolume - initialVolume) > volumeChangeThreshold {
             if currentVolume > initialVolume {
                 volumeChangeHandler?("up")
             } else {
                 volumeChangeHandler?("down")
             }
             
-            // Update initial volume
             initialVolume = currentVolume
         }
     }
@@ -85,7 +88,6 @@ import MediaPlayer
         volumeTimer?.invalidate()
         volumeTimer = nil
         
-        // Clear the handler
         volumeChangeHandler = nil
         
         // Deactivate audio session
