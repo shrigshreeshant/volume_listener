@@ -1,5 +1,5 @@
 name: volume_listener
-description: "A new Flutter plugin project."
+description: "a flutter plugin to listen to volume button press events on android and ios."
 version: 0.0.1
 homepage: https://github.com/folksable/volume_listener
 issue_tracker: https://github.com/folksable/volume_listener/issues
