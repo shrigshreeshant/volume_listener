@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import AVKit
 import MediaPlayer
 
 @objc public class VolumeListener: NSObject {
@@ -11,6 +12,9 @@ import MediaPlayer
     private var volumeTimer: Timer?
     private var systemVolumeView: MPVolumeView?
     
+    // New property for hardware event interaction
+    private var eventInteraction: Any? // Use Any to avoid version-specific compilation
+    
     // Increased sensitivity parameters
     private let volumeChangeThreshold: Float = 0.02 // Smaller threshold for more sensitive detection
     private let timerInterval: TimeInterval = 0.05 // (20 times per second)
@@ -19,6 +23,7 @@ import MediaPlayer
         super.init()
         audioSession = AVAudioSession.sharedInstance()
         setupSystemVolumeView()
+        setupHardwareEventListener()
     }
     
     private func setupSystemVolumeView() {
@@ -28,9 +33,23 @@ import MediaPlayer
         systemVolumeView?.showsVolumeSlider = false
     }
     
+    private func setupHardwareEventListener() {
+        if #available(iOS 17.2, *) {
+            // Explicitly specify the type for AVCaptureEvent and AVCaptureEventInteraction
+            let interaction = AVCaptureEventInteraction{ [weak self] event in
+                if (event.phase == .ended) {
+                    self?.volumeChangeHandler?("capture")
+                }
+            }
+            eventInteraction = interaction
+        }
+    }
+    
     @objc public func startListening(volumeChangeHandler: @escaping (String) -> Void) {
         self.volumeChangeHandler = volumeChangeHandler
         
+        
+        // Fallback to existing timer-based method
         guard let audioSession = self.audioSession else {
             print("VolumeListener: Failed to access audio session")
             return
@@ -47,7 +66,7 @@ import MediaPlayer
             // Start periodic volume checking
             startVolumeTimer()
             
-            print("VolumeListener: Listening started successfully")
+            print("VolumeListener: Listening started with timer method")
         } catch {
             print("VolumeListener: Error setting up audio session - \(error)")
         }
@@ -84,6 +103,14 @@ import MediaPlayer
     }
     
     @objc public func stopListening() {
+        // Stop hardware event listener if available
+        if #available(iOS 17.2, *) {
+            if let interaction = eventInteraction as? AVCaptureEventInteraction {
+                interaction.isEnabled = false
+                print("VolumeListener: Stopped hardware event interaction")
+            }
+        }
+        
         // Stop volume timer
         volumeTimer?.invalidate()
         volumeTimer = nil

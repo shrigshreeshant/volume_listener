@@ -16,6 +16,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   VolumeKey? lastKey;
+  int currentVol = 0;
 
   @override
   void initState() {
@@ -28,6 +29,7 @@ class _MyAppState extends State<MyApp> {
     VolumeListener.addListener((VolumeKey event) {
       setState(() {
         lastKey = event;
+        currentVol += (event == VolumeKey.up ? 1 : -1);
       });
     });
   }
@@ -46,7 +48,7 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Text('Last key:  $lastKey\n'),
+          child: Text('Total volume:  $currentVol\n'),
         ),
       ),
     );
