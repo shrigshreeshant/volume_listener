@@ -21,7 +21,16 @@ import 'package:volume_listener/volume_listener.dart';
 
 void main() {
     VolumeListener.addListener((VolumeKey event) {
-        print(event);
+        switch (event) {
+            case VolumeKey.up:
+                print('Volume Up'); break;
+            case VolumeKey.down:
+                print('Volume Down'); break;
+            // for iOS 17.2+ 
+            case VolumeKey.capture:
+                print('iOS Hardware Camera Capture'); 
+                break;
+        }
     });
   
     // stop listening
