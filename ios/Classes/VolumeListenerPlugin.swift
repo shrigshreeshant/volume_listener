@@ -27,10 +27,10 @@ public class VolumeListenerPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
         // Start listening to volume button presses
         handler = VolumeListener.volumeButtonHandler(
             upBlock: { [weak self] in
-                self?.eventSink?("volume_up")
+                self?.eventSink?("up")
             },
             downBlock: { [weak self] in
-                self?.eventSink?("volume_down")
+                self?.eventSink?("down")
             }
         )
         handler?.startHandler()
