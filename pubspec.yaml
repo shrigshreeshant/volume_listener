@@ -3,13 +3,12 @@ description: "a flutter plugin to listen to volume button press events on androi
 version: 0.1.0
 homepage: https://github.com/folksable/volume_listener
 issue_tracker: https://github.com/folksable/volume_listener/issues
-funding: 
+funding:
   - https://github.com/sponsors/folksable
-
 
 environment:
   sdk: ^3.5.3
-  flutter: '>=3.3.0'
+  flutter: ">=3.3.0"
 
 dependencies:
   flutter:
@@ -29,7 +28,6 @@ flutter:
         pluginClass: VolumeListenerPlugin
       ios:
         pluginClass: VolumeListenerPlugin
-
 
 topics:
   - volume

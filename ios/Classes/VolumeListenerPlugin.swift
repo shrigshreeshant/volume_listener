@@ -4,28 +4,36 @@ import AVFoundation
 
 public class VolumeListenerPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     private var eventSink: FlutterEventSink?
+    private var handler: VolumeListener?
+    
+    // MARK: - FlutterPlugin
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let instance = VolumeListenerPlugin()
         
-        // Create event channel
         let eventChannel = FlutterEventChannel(
-            name: "volume_listener", 
+            name: "volume_listener",
             binaryMessenger: registrar.messenger()
         )
         eventChannel.setStreamHandler(instance)
     }
     
+    // MARK: - FlutterStreamHandler
+    
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         print("VolumeListenerPlugin: Starting to listen")
-        
         self.eventSink = events
         
-        // Start listening to volume changes
-        VolumeListener.shared.startListening { [weak self] volumeKey in
-            print("VolumeListenerPlugin: Volume event received - \(volumeKey)")
-            self?.eventSink?(volumeKey)
-        }
+        // Start listening to volume button presses
+        handler = VolumeListener.volumeButtonHandler(
+            upBlock: { [weak self] in
+                self?.eventSink?("volume_up")
+            },
+            downBlock: { [weak self] in
+                self?.eventSink?("volume_down")
+            }
+        )
+        handler?.startHandler()
         
         return nil
     }
@@ -33,9 +41,9 @@ public class VolumeListenerPlugin: NSObject, FlutterPlugin, FlutterStreamHandler
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
         print("VolumeListenerPlugin: Cancelling listener")
         
-        // Stop listening when stream is cancelled
-        VolumeListener.shared.stopListening()
-        self.eventSink = nil
+        handler?.stopHandler()
+        handler = nil
+        eventSink = nil
         return nil
     }
 }
